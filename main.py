@@ -1,3 +1,4 @@
+import copy
 import sys
 import pygame
 import os
@@ -10,25 +11,28 @@ half_win_width = int(win_width / 2)  # определение центра
 half_win_height = int(win_height / 2)  # определение центра
 
 tile_width = 50  # ширина каждой плитки
-tile_height = 40  # длина каждой плитки
+tile_height = 85  # длина каждой плитки
+tile_flor_height = 40
 cam_move_speed = 5  # количество пикселей на кадр
 outside_decoration = 20  # процент плиток, которые будут задекорированы
-
 bg = pygame.image.load("1.jpg")  # изображение, которое будет использовать в качестве фона
-
-UP = 'up'
-DOWN = 'down'
-LEFT = 'left'
-RIGHT = 'right'
+text_color = (255, 255, 255)
+up = 'up'
+down = 'down'
+left = 'left'
+right = 'right'
 
 
 def main():
-    global fps_clock, display, images_dict, level_map, decor_map, basic_font, gamer_map, current_image
+    # главная функция
+
+    music()  # фоновая музыка
+    global fps_clock, display, images_dict, level_map, decor_map, basic_font, game_costume, current_image
     pygame.init()  # инициализация всех импортированных модулей Pygame
     fps_clock = pygame.time.Clock()  # создание объекта, чтобы отслеживать время (частоту кадров)
     display = pygame.display.set_mode((win_width, win_height))  # создаем окна с размерами 900 * 600
     pygame.display.set_caption('UFO')  # задаем имя окну
-    basic_font = pygame.font.Font('freesansbold.ttf', 18)  # основной шрифт
+    basic_font = pygame.font.Font('freesansbold.ttf', 15)  # основной шрифт
     # создаем словарь из изображений. Не делаем каждое изображение в отдельной переменной, т.к. тогда пришлось бы
     # создавать под каждое изображение свою глобальную переменную
     images_dict = {
@@ -42,11 +46,11 @@ def main():
         'short tree': pygame.image.load('Tree_Short.png'),
         'tall tree': pygame.image.load('Tree_Tall.png'),
         'ugly tree': pygame.image.load('Tree_Ugly.png'),
-        'princess': pygame.image.load('princess.png'),
-        'boy': pygame.image.load('boy.png'),
-        'catgirl': pygame.image.load('catgirl.png'),
-        'horngirl': pygame.image.load('horngirl.png'),
-        'pinkgirl': pygame.image.load('pinkgirl.png')
+        'costume1': pygame.image.load('costume1.png'),
+        'costume2': pygame.image.load('costume2.png'),
+        'costume3': pygame.image.load('costume3.png'),
+        'costume4': pygame.image.load('costume4.png'),
+        'costume5': pygame.image.load('costume5.png')
     }
 
     # связка символа на карте уровня и изображением, соответстсвующим символу
@@ -67,12 +71,13 @@ def main():
     current_image = 0  # начальный костюм героя
 
     # список костюмов героя
-    game_map = [
-        images_dict['princess'],
-        images_dict['boy'],
-        images_dict['catgirl'],
-        images_dict['horngirl'],
-        images_dict['pinkgirl']]
+    game_costume = [
+        images_dict['costume1'],
+        images_dict['costume2'],
+        images_dict['costume3'],
+        images_dict['costume4'],
+        images_dict['costume5']
+    ]
 
     start_screen()  # будет отображаться стартовая страничка, пока не будет начата игра
 
@@ -97,7 +102,6 @@ def main():
 def start_screen():
     # Отображается начальный экран, пока не будет нажата клавиша
 
-    music()  # фоновая музыка
     titleRect = images_dict['title'].get_rect()  # помещаем заголовок - изображение
     titleRect.top = 10  # сколько пикселей отступить от верхнего края
     titleRect.centerx = half_win_width  # выравнивание по центру
@@ -106,18 +110,25 @@ def start_screen():
     textRect.top = 240  # сколько пикселей отступить от верхнего края
     textRect.centerx = half_win_width  # выравнивание по центру
 
+    instruction_text = 'Push the stars over the marks.'  # текст инструкции
+    inst_surf = basic_font.render(instruction_text, 1, text_color)
+    inst_rect = inst_surf.get_rect()
+    inst_rect.top = 395
+    inst_rect.centerx = half_win_width
+
     display.blit(bg, (0, 0))  # фоном сделали картинку
     display.blit(images_dict['title'], titleRect)  # добавили картинку на фон
     display.blit(images_dict['text_title'], textRect)  # добавили текст на фон
+    display.blit(inst_surf, inst_rect)  # добавили описание
 
     # основной цикл для главной страницы
     # по нему программа понимает, надо завершить работу или вернуться из функции startScreen
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT:  # если нажали крестик - выход
+            if event.type == pygame.QUIT:  # если нажали крестик - выход
                 terminate()
-            elif event.type == KEYDOWN:  # если клавиша нажата и это esc - выход
-                if event.key == K_ESCAPE:
+            elif event.type == pygame.KEYDOWN:  # если клавиша нажата и это esc - выход
+                if event.key == pygame.K_ESCAPE:
                     terminate()
                 return
         # пока игрок не делает ничего, вызываем функции, чтобы главная страница отображалась на экране
@@ -220,7 +231,114 @@ def read_levels_file(filename):
 
 
 def run_level(levels, level_num):
+    # работа уровня (обработка действий в игре)
+
+    global current_image  # начальный костюм героя
+    level_obj = levels[level_num]  # объект уровня текущего уровня (тот, который мы хотим видеть)
+    map_obj = decorate_map(level_obj['map_obj'], level_obj['start_state']['player'])  # объект карты
+    game_state_obj = copy.deepcopy(level_obj['start_state'])  # копия уровня для отслеживания. Запомнили исходный
+    # уровень, если игрок захочет играть заново - уровень восстановится
+    map_needs_redraw = True  # установили True для вызова draw_map
+    level_surf = basic_font.render('Уровень %s / %s' % (level_num + 1, len(levels)), 1, text_color)  # текст об урове
+    level_rect = level_surf.get_rect()  # создание rect
+    level_rect.bottomleft = (20, win_width - 35)  # координата правого нижнего угла
+    map_width = len(map_obj) * tile_width  # ширина уровня (умнодаем на ширину плитки)
+    map_height = (len(map_obj[0]) - 1) * tile_flor_height + tile_height  # высота уровня (добавляем плитку в конце,
+    # т.к. она не будет перекрыта (нижний ряд))
+    level_is_complete = False  # устанвливаем, что уровень не пройден
+
+    while True:
+        # сброс переменных
+        player_move_to = None  # переместить игрока на карте
+        key_pressed = False  # клавиша нажата
+        # обработка событий
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # если нажали крестик - выход
+                terminate()
+            elif event.type == pygame.KEYDOWN:  # если клавиша нажата
+                key_pressed = True
+                if event.key == pygame.K_LEFT:
+                    player_move_to = left
+                elif event.key == pygame.K_RIGHT:
+                    player_move_to = right
+                elif event.key == pygame.K_UP:
+                    player_move_to = up
+                elif event.key == pygame.K_DOWN:
+                    player_move_to = down
+                elif event.key == pygame.K_n:
+                    return 'next'
+                elif event.key == pygame.K_b:
+                    return 'back'
+                elif event.key == pygame.K_ESCAPE:
+                    terminate()
+                elif event.key == pygame.K_BACKSPACE:
+                    return 'reset'
+                elif event.key == pygame.K_p:
+                    current_image += 1
+                    if current_image >= len(game_costume):
+                        current_image = 0
+                    map_needs_redraw = True
+
+        # если игрок совершил перемещение и уровень не окончен
+        if player_move_to is not None and not level_is_complete:
+            moved = make_move(map_obj, game_state_obj, player_move_to)  # вызов функции обработки координат Х,У
+            # если вернулась истина - игрок действительно переместился. Если ложь - игрок пытался пройти через
+            # препятсвие или толкнуть звезду, у которой впереди было препятствие (игрок не может двигаться и на карте
+            # ничего не меняется)
+            if moved:
+                game_state_obj['step_counter'] += 1  # счетчик шагов
+                map_needs_redraw = True
+            # если уровень пройден, показываем "Пройден" и обнуляем параметры
+            if level_finished(level_obj, game_state_obj):
+                level_is_complete = True
+                key_pressed = False
+
+        display.blit(bg, (0, 0))  # добавили фон
+
+        #рисуем объект
+        display.blit(level_surf, level_rect)
+        step_surf = basic_font.render('Шаги: %s' % (game_state_obj['step_counter']), 1, text_color)
+        step_rect = step_surf.get_rect()
+        step_rect.bottomleft = (20, win_height - 10)
+        display.blit(step_surf, step_rect)
+
+        # если игрок переместился, то карту нужно перерисовать
+        if map_needs_redraw:
+            mapSurf = draw_map(map_obj, game_state_obj, level_obj['goals'])
+            map_needs_redraw = False
+
+        # если уровень пройден, пишем надпись поверх уровня, что он пройден
+        if level_is_complete:
+            solved_rect = images_dict['solved'].get_rect()
+            solved_rect.center = (half_win_width, half_win_height)
+            display.blit(images_dict['solved'], solved_rect)
+            # если пользователь нажимает клавишу в этот момент, то переходит на новый уровень
+            if key_pressed:
+                return 'solved'
+        # отображаем страничку на экране
+        pygame.display.update()
+        fps_clock.tick()
+
+
+def decorate_map(map_obj, start_x_y):
     pass
+
+
+def draw_map(map_obj, game_state_obj, goals):
+    pass
+
+
+def make_move(map_obj, game_state_obj, player_move_to):
+    pass
+
+
+def level_finished(level_obj, game_state_obj):
+    # Уровень будет пройден, если на всех целях есть звезды. некоторые уровни имееют больше звезд, чем целей. Поэтому
+    # проверяем, чтобы все цели были покрыты звездами, а не все ли звезды на цели
+    for goal in level_obj['goals']:
+        if goal not in game_state_obj['stars']:
+            return False
+    return True
 
 
 def terminate():
