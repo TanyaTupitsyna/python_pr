@@ -76,7 +76,6 @@ basic_font = pygame.font.Font('freesansbold.ttf', FONT)  # основной шр
 
 def main():
     # главная функция
-
     pygame.mixer.init()  # инициализация модуля микшера
     pygame.mixer.music.load('NLO.mp3')  # загрузка музыки
     pygame.mixer.music.set_volume(0.1)  # устанавливаем громкость
