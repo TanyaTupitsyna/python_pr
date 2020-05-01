@@ -25,32 +25,32 @@ RIGHT = 'right'  # движение вправо
 current_image = 0  # начальный костюм героя
 # создаем словарь из изображений
 images_dict = {
-        'title': pygame.image.load('star_title.png'),
-        'text_title': pygame.image.load('text_title.png'),
-        'corner': pygame.image.load('Wall_Block_Tall.png'),
-        'wall': pygame.image.load('Wood_Block_Tall.png'),
-        'inside floor': pygame.image.load('Plain_Block.png'),
-        'outside floor': pygame.image.load('Grass_Block.png'),
-        'rock': pygame.image.load('Rock.png'),
-        'short tree': pygame.image.load('Tree_Short.png'),
-        'tall tree': pygame.image.load('Tree_Tall.png'),
-        'ugly tree': pygame.image.load('Tree_Ugly.png'),
-        'costume1': pygame.image.load('costume1.png'),
-        'costume2': pygame.image.load('costume2.png'),
-        'costume3': pygame.image.load('costume3.png'),
-        'costume4': pygame.image.load('costume4.png'),
-        'costume5': pygame.image.load('costume5.png'),
-        'uncovered goal': pygame.image.load('RedSelector.png'),
-        'covered goal': pygame.image.load('Selector.png'),
-        'star': pygame.image.load('star.png'),
-        'solved': pygame.image.load('star_solved.png')
+    'title': pygame.image.load('star_title.png'),
+    'text_title': pygame.image.load('text_title.png'),
+    'corner': pygame.image.load('Wall_Block_Tall.png'),
+    'wall': pygame.image.load('Wood_Block_Tall.png'),
+    'inside floor': pygame.image.load('Plain_Block.png'),
+    'outside floor': pygame.image.load('Grass_Block.png'),
+    'rock': pygame.image.load('Rock.png'),
+    'short tree': pygame.image.load('Tree_Short.png'),
+    'tall tree': pygame.image.load('Tree_Tall.png'),
+    'ugly tree': pygame.image.load('Tree_Ugly.png'),
+    'costume1': pygame.image.load('costume1.png'),
+    'costume2': pygame.image.load('costume2.png'),
+    'costume3': pygame.image.load('costume3.png'),
+    'costume4': pygame.image.load('costume4.png'),
+    'costume5': pygame.image.load('costume5.png'),
+    'uncovered goal': pygame.image.load('RedSelector.png'),
+    'covered goal': pygame.image.load('Selector.png'),
+    'star': pygame.image.load('star.png'),
+    'solved': pygame.image.load('star_solved.png')
 }
 # связка символа на карте уровня и изображением, соответстсвующим символу
 level_map = {
-        'x': images_dict['corner'],
-        '#': images_dict['wall'],
-        'o': images_dict['inside floor'],
-        ' ': images_dict['outside floor']
+    'x': images_dict['corner'],
+    '#': images_dict['wall'],
+    'o': images_dict['inside floor'],
+    ' ': images_dict['outside floor']
 }
 # связка предмета, изображенного поверх травы, и его номера
 decor_map = {'1': images_dict['rock'],
@@ -60,11 +60,11 @@ decor_map = {'1': images_dict['rock'],
              }
 # список костюмов героя
 game_costume = [
-        images_dict['costume1'],
-        images_dict['costume2'],
-        images_dict['costume3'],
-        images_dict['costume4'],
-        images_dict['costume5']
+    images_dict['costume1'],
+    images_dict['costume2'],
+    images_dict['costume3'],
+    images_dict['costume4'],
+    images_dict['costume5']
 ]
 
 pygame.init()  # инициализация всех импортированных модулей Pygame
@@ -92,9 +92,13 @@ def main():
         result = run_level(levels, current_level_index)  # отдаем все уровни и номер уровня, который нам нужен
         if result in ('пройден', 'следующий'):  # переход на следующий уровень
             current_level_index += 1
-            if current_level_index >= len(levels):  # если уровни закончились, попадаем на главную
+            if current_level_index >= len(levels) and result == 'пройден':  # если уровни все пройдены, попадаем на
+                # главную
                 current_level_index = 0
                 start_screen()
+            elif current_level_index >= len(levels) and result == 'следующий':  # если больше уровней нет, переходи
+                # на первый
+                current_level_index = 0
         elif result == 'назад':  # вернуться на уровень назад
             current_level_index -= 1
             if current_level_index < 0:  # если это самый первый уровень, остаемся на нем
@@ -107,35 +111,27 @@ def main():
 def start_screen():
     # Отображается начальный экран, пока не будет нажата клавиша
 
-    title_rect = images_dict['title'].get_rect()  # помещаем заголовок - изображение
-    title_rect.top = 10  # сколько пикселей отступить от верхнего края
-    title_rect.centerx = HALF_WIN_WIDHT  # выравнивание по центру (координата х)
-
-    text_rect = images_dict['text_title'].get_rect()  # помещаем текст - изображение
-    text_rect.top = 240  # сколько пикселей отступить от верхнего края
-    text_rect.centerx = HALF_WIN_WIDHT  # выравнивание по центру (координата х)
-
-    instruction_text = 'Push the stars over the marks.'  # текст инструкции
-    inst_surf = basic_font.render(instruction_text, 1, TEXT_COLOR)  # цвет текста (1 - сглаживание)
-    inst_rect = inst_surf.get_rect()  # создание объекта
-    inst_rect.top = 395  # сколько пикселей отступить от верхнего края
-    inst_rect.centerx = HALF_WIN_WIDHT # выравнивание по центру (координата х)
-
-    display.blit(BG, (0, 0))  # фоном сделали картинку, левый верхний угол картинки - (0,0)
-    display.blit(images_dict['title'], title_rect)  # добавили картинку на фон
-    display.blit(images_dict['text_title'], text_rect)  # добавили текст на фон
-    display.blit(inst_surf, inst_rect)  # добавили описание на фон
-
+    inst()
     # основной цикл для главной страницы
-    # по нему программа понимает, надо завершить работу или вернуться из функции startScreen
+    # по нему программа понимает, надо завершить работу или вернуться из функции start_screen
     while True:
+        click = False  # флаг, что левая кнопка мыши нажата
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # если нажали крестик - выход
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # если нажата мышка и кнопка
+                click = True  # инвертируем флаг
+                mx, my = pygame.mouse.get_pos()  # переменные для хранения позиции мыши
+                if image[1].collidepoint(mx, my) and click:  # если нажали на кнопку
+                    display.blit(pygame.image.load("manual.jpg"), (0, 0))  # рисую инструкцию
+                    image1 = button('main.png', (125, 20), display)  # кнопка назад
+                if image1[1].collidepoint(mx, my) and click:  # если нажали назад - перерисовываю начальный экран
+                    inst()
+            elif event.type == pygame.QUIT:  # если нажали крестик - выход
                 terminate()
-            elif event.type == pygame.KEYDOWN:  # если клавиша нажата и это esc - выход
-                if event.key == pygame.K_ESCAPE:
+            elif event.type == pygame.KEYDOWN:  # если клавиша нажата
+                if event.key == pygame.K_ESCAPE:  # выход
                     terminate()
-                return
+                if event.key == pygame.K_SPACE:  # закрыли окно
+                    return
         # пока игрок не делает ничего, вызываем функции, чтобы главная страница отображалась на экране
         pygame.display.update()  # отображение всего на экране
         fps_clock.tick()  # миллисекунды работы программы
@@ -249,6 +245,24 @@ def run_level(levels, level_num):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # если нажали крестик - выход
                 terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # если нажали мышкой на кнопку
+                click = True
+                mx, my = pygame.mouse.get_pos()
+                if back_i[1].collidepoint(mx, my) and click:
+                    return 'назад'
+                elif next_i[1].collidepoint(mx, my) and click:
+                    return 'следующий'
+                elif costum_i[1].collidepoint(mx, my) and click:
+                    current_image += 1
+                    if current_image >= len(game_costume):
+                        current_image = 0
+                    map_needs_redraw = True
+                elif restart_i[1].collidepoint(mx, my) and click:
+                    return 'заново'
+                elif esc_i[1].collidepoint(mx, my) and click:
+                    terminate()
+                elif home_i[1].collidepoint(mx, my) and click:
+                    start_screen()
             elif event.type == pygame.KEYDOWN:  # если клавиша нажата
                 key_pressed = True
                 if event.key == pygame.K_LEFT:
@@ -297,7 +311,8 @@ def run_level(levels, level_num):
             mapSurfRect.center = (HALF_WIN_WIDHT, HALF_WIN_HEIGHT)
         display.blit(map_surf, mapSurfRect)
 
-        level_surf = basic_font.render('Уровень %s / %s' % (level_num + 1, len(levels)), 1,TEXT_COLOR)  # инфа  об урове
+        level_surf = basic_font.render('Уровень %s / %s' % (level_num + 1, len(levels)), 1,
+                                       TEXT_COLOR)  # инфа  об урове
         level_rect = level_surf.get_rect()  # создание объекта
         level_rect.bottomleft = (20, WIN_HEIGHT - 35)  # координаты расположения надписи
         display.blit(level_surf, level_rect)  # отрисовка на экране
@@ -306,6 +321,13 @@ def run_level(levels, level_num):
         step_rect = step_surf.get_rect()  # создание объекта
         step_rect.bottomleft = (20, WIN_HEIGHT - 10)  # координаты расположения надписи
         display.blit(step_surf, step_rect)  # отрисовка на экране
+
+        back_i = button('back.png', (590, 550), display)  # загрузили кнопку "назад" на фон
+        next_i = button('next.png', (650, 550), display)  # загрузили кнопку "вперед" на фон
+        costum_i = button('costum.png', (710, 550), display)  # загрузили кнопку "смена костюма" на фон
+        restart_i = button('restart.png', (770, 550), display)  # загрузили кнопку "начать заново" на фон
+        home_i = button('home.png', (820, 550), display)  # загрузили кнопку "вернуться на главную" на фон
+        esc_i = button('esc.png', (880, 550), display)  # загрузили кнопку "выход" на фон
 
         # если уровень пройден, пишем надпись поверх уровня, что он пройден
         if level_is_complete:
@@ -438,7 +460,7 @@ def level_finished(level_obj, game_state_obj):
     return True
 
 
-def wall(map_obj: object, x: object, y: object) -> object:
+def wall(map_obj, x, y):
     # возвразщает true, если позиция (х,у) стена, иначе false
 
     if x < 0 or x >= len(map_obj) or y < 0 or y >= len(map_obj[x]):  # такие координаты лежат за картой уровня
@@ -461,6 +483,43 @@ def blocked(map_obj, game_state_obj, x, y):
     elif (x, y) in game_state_obj['stars']:
         return True
     return False
+
+
+def button(picture, coords, display):
+    # создание кнопок
+
+    image = pygame.image.load(picture)  # загрузка изображения, которое будет на кнопке
+    image_rect = image.get_rect()  # создаем объект
+    image_rect.topright = coords  # загружаем координаты правого верхнего угла кнопки
+    display.blit(image, image_rect)  # выводим кнопку на экран
+    return image, image_rect
+
+
+def inst():
+    # функция отрисовки главного меню
+
+    global image
+
+    title_rect = images_dict['title'].get_rect()  # помещаем заголовок - изображение
+    title_rect.top = 10  # сколько пикселей отступить от верхнего края
+    title_rect.centerx = HALF_WIN_WIDHT  # выравнивание по центру (координата х)
+
+    text_rect = images_dict['text_title'].get_rect()  # помещаем текст - изображение
+    text_rect.top = 240  # сколько пикселей отступить от верхнего края
+    text_rect.centerx = HALF_WIN_WIDHT  # выравнивание по центру (координата х)
+
+    instruction_text = 'Push the stars over the marks.'  # текст инструкции
+    inst_surf = basic_font.render(instruction_text, 1, TEXT_COLOR)  # цвет текста (1 - сглаживание)
+    inst_rect = inst_surf.get_rect()  # создание объекта
+    inst_rect.top = 395  # сколько пикселей отступить от верхнего края
+    inst_rect.centerx = HALF_WIN_WIDHT  # выравнивание по центру (координата х)
+
+    display.blit(BG, (0, 0))  # фоном сделали картинку, левый верхний угол картинки - (0,0)
+    display.blit(images_dict['title'], title_rect)  # добавили картинку на фон
+    display.blit(images_dict['text_title'], text_rect)  # добавили текст на фон
+    display.blit(inst_surf, inst_rect)  # добавили описание на фон
+
+    image = button('menu.png', (870, 20), display)  # загрузили кнопку на фон
 
 
 def terminate():
