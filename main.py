@@ -209,7 +209,7 @@ def read_levels_file(filename):
             level_obj = {
                 'width': max_width,  # ширина
                 'height': len(map_obj),  # высота
-                'map_obj': map_obj,  # координаты поля
+                'map_obj': map_obj,  # отображение объекта уровня
                 'goals': goals,  # координаты целей
                 'start_state': game_state_obj  # состояние игры
             }
@@ -312,7 +312,7 @@ def run_level(levels, level_num):
             mapSurfRect.center = (HALF_WIN_WIDHT, HALF_WIN_HEIGHT)
         display.blit(map_surf, mapSurfRect)
 
-        level_surf = basic_font.render('Уровень %s / %s' % (level_num + 1, len(levels)), 1,
+        level_surf = basic_font.render('Уровень: %s / %s' % (level_num + 1, len(levels)), 1,
                                        TEXT_COLOR)  # инфа  об урове
         level_rect = level_surf.get_rect()  # создание объекта
         level_rect.bottomleft = (20, WIN_HEIGHT - 35)  # координаты расположения надписи
