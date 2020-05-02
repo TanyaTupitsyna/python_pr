@@ -1,8 +1,8 @@
 import copy
 import random
 import sys
-import pygame
 import os
+import pygame
 from pygame.locals import *
 
 FPS = 30  # частота кадров в секунду
@@ -276,6 +276,8 @@ def run_level(levels, level_num):
                     return 'следующий'
                 elif event.key == pygame.K_b:
                     return 'назад'
+                elif event.key == pygame.K_q:
+                    start_screen()
                 elif event.key == pygame.K_ESCAPE:
                     terminate()
                 elif event.key == pygame.K_BACKSPACE:
